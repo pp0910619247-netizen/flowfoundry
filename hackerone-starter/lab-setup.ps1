@@ -1,6 +1,7 @@
 # ติดตั้ง+เริ่มห้องฝึก OWASP Juice Shop (สร้างมาเพื่อให้ฝึกแฮ็กอย่างถูกกฎหมาย)
 # รัน: powershell -File lab-setup.ps1   (ครั้งแรกโหลด ~5-10 นาที แล้วเว็บจะเปิดที่ http://localhost:3000)
 $ErrorActionPreference = "Stop"
+$env:CYPRESS_INSTALL_BINARY = "0"   # cypress ไม่จำเป็นสำหรับรันเซิร์ฟเวอร์ และการโหลด binary มักพังบน Windows
 Set-Location (Split-Path $PSCommandPath)
 
 if (!(Test-Path "juice-shop")) {
