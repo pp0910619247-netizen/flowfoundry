@@ -2,6 +2,11 @@
 
 หน้า landing page แบบ static สำหรับเสนอขายบริการ automation ให้ธุรกิจขนาดเล็ก
 
+**เว็บออนไลน์แล้ว:** https://pp0910619247-netizen.github.io/flowfoundry/
+**Repo:** https://github.com/pp0910619247-netizen/flowfoundry
+**เดโม่สมองจำลอง LUMA:** https://pp0910619247-netizen.github.io/flowfoundry/luma-brain/
+**เดโม่ระบบรับออเดอร์:** https://pp0910619247-netizen.github.io/flowfoundry/demo/
+
 ## เปิดใช้งาน
 
 เปิด `index.html` ด้วย browser ได้ทันที หรือเสิร์ฟด้วย static hosting เช่น GitHub Pages, Cloudflare Pages หรือ Netlify
