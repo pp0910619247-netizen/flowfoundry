@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="th">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="สั่งงาน FlowFoundry — ชำระผ่าน QR PromptPay หรือ Polygon พร้อมใบสั่งงานอัตโนมัติ" />
+    <title>สั่งงานและชำระเงิน | FlowFoundry</title>
+    <style>
+      :root{--bg:#101311;--panel:#171c18;--line:#303a32;--text:#f1f4ef;--muted:#aab4aa;--accent:#b7f36b;--accent-dark:#18240f;--danger:#f37a6b}
+      *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,system-ui,"Segoe UI",sans-serif;line-height:1.6}
+      header{display:flex;justify-content:space-between;align-items:center;padding:14px 18px;border-bottom:1px solid var(--line);max-width:720px;margin:auto}
+      header a{color:var(--muted);text-decoration:none;font-size:13px}
+      .wrap{max-width:720px;margin:auto;padding:20px 18px 50px}
+      h1{font-size:clamp(22px,5vw,32px)}h1 span{color:var(--accent)}
+      .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px;margin-bottom:16px}
+      label{display:block;font-size:13px;color:var(--muted);margin:12px 0 5px}
+      input,select,textarea{width:100%;background:#0e120f;border:1px solid var(--line);border-radius:9px;color:var(--text);font:inherit;font-size:15px;padding:11px 13px;outline:none}
+      input:focus,select:focus,textarea:focus{border-color:var(--accent)}
+      .pkgs{display:grid;gap:8px}
+      .pkg{display:flex;justify-content:space-between;align-items:center;border:1px solid var(--line);border-radius:10px;padding:12px 14px;cursor:pointer;transition:border-color .15s}
+      .pkg.sel{border-color:var(--accent);background:rgba(183,243,107,.06)}
+      .pkg b{font-size:15px}.pkg small{display:block;color:var(--muted)}
+      .price{font-weight:800;color:var(--accent);white-space:nowrap}
+      button.go{width:100%;margin-top:18px;background:var(--accent);color:var(--accent-dark);border:0;border-radius:10px;font:inherit;font-weight:800;font-size:16px;padding:14px;cursor:pointer}
+      .paybox{display:none;text-align:center}
+      .paybox.show{display:block}
+      #qr{background:#fff;border-radius:12px;padding:12px;display:inline-block;margin:14px 0}
+      .amount{font-size:34px;font-weight:900;color:var(--accent)}
+      .tab{display:flex;gap:8px;margin:14px 0}
+      .tab button{flex:1;background:transparent;border:1px solid var(--line);color:var(--muted);border-radius:9px;padding:10px;font:inherit;font-size:14px;cursor:pointer}
+      .tab button.on{border-color:var(--accent);color:var(--accent)}
+      code.w{word-break:break-all;font-size:12px;color:var(--muted);background:#0e120f;padding:8px;border-radius:8px;display:block;text-align:left}
+      .note{font-size:12px;color:var(--muted);text-align:left}
+      .ok{color:var(--accent);font-weight:700}
+      a.m{color:var(--accent)}
+    </style>
+  </head>
+  <body>
+    <header>
+      <strong>สั่งงาน FlowFoundry</strong>
+      <a href="../">← กลับหน้าหลัก</a>
+    </header>
+    <div class="wrap">
+      <h1>เลือกแพ็กเกจ <span>→ ชำระ → เริ่มงาน</span></h1>
+      <p style="color:var(--muted);font-size:14px">กรอกข้อมูล เลือกช่องทางชำระ ระบบจะสร้าง QR/ที่อยู่ให้พร้อมรหัสอ้างอิง — ส่งรหัสมาทางอีเมลเพื่อยืนยันการเริ่มงาน</p>
+
+      <div class="card" id="step1">
+        <label>ชื่อ-ติดต่อ (LINE/โทร)</label>
+        <input id="f-name" placeholder="เช่น พี่บอม ร้านกะเพราบ้านสวน / LINE: bomshop" />
+        <label>เลือกแพ็กเกจ</label>
+        <div class="pkgs" id="pkgs"></div>
+        <label>โจทย์สั้น ๆ (แจ้งรายละเอียดในอีเมลถัดไปได้)</label>
+        <textarea id="f-brief" rows="2" placeholder="งานที่อยากให้ทำอัตโนมัติ"></textarea>
+        <button class="go" id="btn-next">ไปหน้าชำระเงิน →</button>
+      </div>
+
+      <div class="card paybox" id="step2">
+        <div class="tab">
+          <button id="tab-pp" class="on">PromptPay</button>
+          <button id="tab-crypto">Polygon (USDC/MATIC)</button>
+        </div>
+        <div id="pane-pp">
+          <p class="note">QR สร้างในเบราว์เซอร์ของคุณ (ไม่ส่งข้อมูลออก) — ใส่เลขพร้อมเพย์ของร้านครั้งแรกครั้งเดียว เครื่องจะจำไว้</p>
+          <label>เลขพร้อมเพย์ (เบอร์โทร 10 หลัก / เลขบัตร 13 หลัก)</label>
+          <input id="pp-id" inputmode="numeric" placeholder="08x xxx xxxx" />
+          <div id="qr"></div>
+          <div class="amount">฿<span id="amt">0</span></div>
+          <p class="note">รหัสอ้างอิง: <span class="ok" id="ref"></span> — หลังโอน ส่งรหัสนี้+สลิปมาที่ <a class="m" href="mailto:aiginol011@gmail.com">aiginol011@gmail.com</a></p>
+        </div>
+        <div id="pane-crypto" style="display:none">
+          <p class="note">เครือข่าย Polygon (PoS) — USDC หรือ MATIC ตามจำนวนที่ตกลง ตรวจเครือข่ายก่อนโอนทุกครั้ง</p>
+          <code class="w" id="wallet">0xaA15b2871F844dB9Bd4076e78293FB797646fc64</code>
+          <p class="note">จำนวนที่ต้องโอน: <span class="ok" id="amt2"></span> — โอนแล้วส่ง tx hash + รหัสอ้างอิง <span class="ok" id="ref2"></span> มาที่อีเมลด้านบน</p>
+        </div>
+        <button class="go" id="btn-mail">สร้างอีเมลยืนยันสั่งงาน →</button>
+      </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
+    <script>
+    "use strict";
+    const PACKAGES=[
+      {id:"start",name:"เริ่มต้น",desc:"วิเคราะห์ 45 นาที + automation 1 ชุด + วิดีโอสอน",price:2900},
+      {id:"grow",name:"เติบโต",desc:"workflow 3 ชุด + dashboard + แก้ไข 14 วัน",price:7900},
+      {id:"custom",name:"ออกแบบเฉพาะทาง",desc:"ตกลงขอบเขต/ราคาก่อน แล้วชำระตามใบเสนอราคา",price:0},
+    ];
+    const EMAIL="aiginol011@gmail.com";
+    const state={pkg:null,ref:""};
+    const $=s=>document.querySelector(s);
+
+    const box=$("#pkgs");
+    PACKAGES.forEach((p,i)=>{
+      const d=document.createElement("div");
+      d.className="pkg";d.dataset.i=i;
+      d.innerHTML="<div><b>"+p.name+"</b><small>"+p.desc+"</small></div>"
+        +'<div class="price">'+(p.price?"฿"+p.price.toLocaleString():"คุยราคา")+"</div>";
+      d.addEventListener("click",()=>{
+        document.querySelectorAll(".pkg").forEach(x=>x.classList.remove("sel"));
+        d.classList.add("sel");state.pkg=p;
+      });
+      box.appendChild(d);
+    });
+
+    function crc16(s){let c=0xFFFF;for(let i=0;i<s.length;i++){c^=s.charCodeAt(i)<<8;for(let j=0;j<8;j++){c=c&0x8000?((c<<1)^0x1021):c<<1;c&=0xFFFF;}}return c.toString(16).toUpperCase().padStart(4,"0");}
+    function fld(id,v){return id+String(v.length).padStart(2,"0")+v;}
+    function ppPayload(ppid,amount){
+      const n=ppid.replace(/[\s-]/g,"");
+      let acct;
+      if(n.length===13){acct=fld("00","A000000677010111")+fld("01","A0000005555555")+fld("02",n);}
+      else if(n.length===10&&n[0]==="0"){acct=fld("00","A000000677010111")+fld("01","A000000677010111")+fld("02","0066"+n.slice(1));}
+      else return null;
+      let p=fld("00","01")+fld("01","12")+fld("29",acct)+fld("58","TH")+fld("53","764");
+      if(amount>0)p+=fld("54",amount.toFixed(2));
+      p+="6304";
+      return p+crc16(p);
+    }
+    function drawQR(){
+      const id=$("#pp-id").value.trim();
+      if(id)try{localStorage.setItem("ff.ppid",id);}catch(e){}
+      const payload=ppPayload(id,state.pkg?state.pkg.price:0);
+      const q=$("#qr");
+      if(!payload){q.innerHTML='<p style="color:#f37a6b;font-size:13px;margin:8px">ใส่เลขพร้อมเพย์ 10 หรือ 13 หลักก่อนนะครับ</p>';return;}
+      const qr=qrcode(0,"M");qr.addData(payload);qr.make();
+      q.innerHTML=qr.createImgTag(5,8);
+    }
+    $("#pp-id").addEventListener("input",drawQR);
+
+    $("#btn-next").addEventListener("click",()=>{
+      if(!$("#f-name").value.trim()){alert("ใส่ชื่อ/ช่องทางติดต่อก่อนครับ");return;}
+      if(!state.pkg){alert("เลือกแพ็กเกจก่อนครับ");return;}
+      state.ref="FF-"+Date.now().toString(36).toUpperCase().slice(-6);
+      $("#step2").classList.add("show");
+      $("#ref").textContent=state.ref;$("#ref2").textContent=state.ref;
+      $("#amt").textContent=(state.pkg.price||0).toLocaleString();
+      $("#amt2").textContent=state.pkg.price?("ราคาบาท "+state.pkg.price.toLocaleString()+" ฿ → USDC/MATIC ตามอัตราขณะโอน (ยืนยันจำนวนกันทางอีเมลก่อนโอน)"):"ตามใบเสนอราคา";
+      const saved=(()=>{try{return localStorage.getItem("ff.ppid")||"";}catch(e){return"";}})();
+      if(saved)$("#pp-id").value=saved;
+      $("#step2").scrollIntoView({behavior:"smooth"});
+      if(state.pkg.price>0)drawQR();else $("#pane-pp").innerHTML='<p class="note">แพ็กเกจนี้คุยขอบเขต/ราคาก่อน — กดปุ่มด้านล่างส่งอีเมลได้เลยครับ</p>';
+    });
+    $("#tab-pp").addEventListener("click",()=>{$("#tab-pp").classList.add("on");$("#tab-crypto").classList.remove("on");$("#pane-pp").style.display="block";$("#pane-crypto").style.display="none";if(state.pkg&&state.pkg.price>0)drawQR();});
+    $("#tab-crypto").addEventListener("click",()=>{$("#tab-crypto").classList.add("on");$("#tab-pp").classList.remove("on");$("#pane-crypto").style.display="block";$("#pane-pp").style.display="none";});
+    $("#btn-mail").addEventListener("click",()=>{
+      const p=state.pkg||{name:"-",price:0};
+      const subj=encodeURIComponent("สั่งงาน FlowFoundry ["+state.ref+"] "+p.name);
+      const body=encodeURIComponent(
+        "รหัสอ้างอิง: "+state.ref
+        +"\nแพ็กเกจ: "+p.name+(p.price?" ("+p.price.toLocaleString()+" บาท):":"")
+        +"\nชื่อ/ติดต่อ: "+$("#f-name").value
+        +"\nโจทย์: "+$("#f-brief").value
+        +"\nช่องทางชำระ: "+($("#tab-crypto").classList.contains("on")?"Polygon":"PromptPay")
+        +"\n\nแนบสลิป/tx hash มาด้วยนะครับ แล้วเราจะตอบยืนยันการเริ่มงาน"
+      );
+      window.location.href="mailto:"+EMAIL+"?subject="+subj+"&body="+body;
+    });
+    </script>
+  </body>
+</html>
