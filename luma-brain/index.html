@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="th">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#0b0f0d" />
+    <meta
+      name="description"
+      content="LUMA — สมองจำลองที่จำได้ข้ามวัน สงสัยด้วยตัวเอง และนอนจัดระเบียบความจำ เห็นสมองคิดสด ๆ บนมือถือ"
+    />
+    <title>LUMA — สมองจำลองที่จำได้ สงสัย และเรียนรู้</title>
+    <link
+      rel="icon"
+      href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><circle cx='16' cy='16' r='13' fill='%23b7f36b'/><circle cx='16' cy='16' r='5' fill='%230b0f0d'/></svg>"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header class="top">
+      <div class="brand"><span class="dot"></span>LUMA <small>สมองจำลอง v1</small></div>
+      <div class="chips">
+        <span class="chip" id="mood-chip">🙂 ปกติ</span>
+        <span class="chip" id="focus-chip">โฟกัส: —</span>
+      </div>
+    </header>
+
+    <main>
+      <section class="brain-panel" aria-label="ภาพสมองของ LUMA">
+        <canvas id="brain-canvas"></canvas>
+        <div class="brain-meta">
+          <span id="memory-chip">ความจำ 0</span>
+          <span id="curiosity-chip">สงสัย: —</span>
+          <button id="inspector-btn" class="mini" type="button">ดูความจำ</button>
+        </div>
+        <aside id="inspector" hidden>
+          <h3>ความเชื่อมที่แข็งแรง</h3>
+          <ul id="edge-list"></ul>
+          <h3>เหตุการณ์ล่าสุด</h3>
+          <ul id="episode-list"></ul>
+        </aside>
+      </section>
+
+      <section id="chat" class="chat" aria-live="polite"></section>
+
+      <form id="ask" class="ask">
+        <input
+          id="input"
+          name="text"
+          placeholder="คุยกับ LUMA... (พิมพ์ 'นอน' ให้มันจัดระเบียบความจำ)"
+          autocomplete="off"
+          autocapitalize="off"
+          enterkeyhint="send"
+        />
+        <button type="submit">ส่ง</button>
+      </form>
+
+      <div class="actions">
+        <button id="sleep-btn" class="mini" type="button">ให้มันนอนจัดระเบียบความจำ</button>
+        <button id="wipe-btn" class="mini danger" type="button">ลบความจำทั้งหมด</button>
+      </div>
+    </main>
+
+    <noscript><p class="noscript">LUMA ต้องใช้ JavaScript เพื่อคิดและจำ</p></noscript>
+    <script src="brain.js"></script>
+  </body>
+</html>
